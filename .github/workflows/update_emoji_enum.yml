@@ -1,0 +1,58 @@
+name: Update Emoji Enum
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at midnight UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write # Allows pushing commits
+  pull-requests: write # Allows creating and managing PRs
+
+jobs:
+  update-emoji-enum:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Run update script
+        run: |
+          make
+        shell: bash
+
+      - name: Check for changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          if [ -n "$(git status --porcelain)" ]; then
+            echo 'Changes detected, committing...'
+            git add lib/src/emoji_enum.dart data/emoji-test.txt
+            git commit -m 'chore: update emojis via GitHub Actions'
+          else
+            echo 'No changes detected, exiting.'
+            exit 0
+          fi
+        shell: bash
+
+      - name: Create or Update Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.PAT }}
+          title: '[Automated Update] Update Emoji Enum'
+          branch: automated/emoji-update
+          delete-branch: true
+          body: |
+            This pull request was created automatically by a GitHub Action workflow. It updates the `emoji_enum.dart` and `emoji-test.txt` files with the latest emoji data.
+          labels: automated pr
+          assignees: madtocc

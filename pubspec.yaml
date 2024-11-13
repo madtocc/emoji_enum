@@ -1,0 +1,9 @@
+name: emoji_enum
+description: 'A plain emoji enum for Dart/Flutter.'
+version: 0.1.0
+
+environment:
+  sdk: ^3.5.4
+
+dev_dependencies:
+  lints: ^5.0.0
